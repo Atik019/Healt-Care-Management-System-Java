@@ -1,0 +1,320 @@
+package healthcareMS;
+
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Toolkit;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JButton;
+import java.awt.SystemColor;
+import javax.swing.UIManager;
+import javax.swing.JComboBox;
+import javax.swing.JTextArea;
+import javax.swing.DropMode;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
+import java.awt.event.ActionEvent;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.SwingConstants;
+
+
+
+
+
+
+
+
+
+
+public class user extends JFrame {
+
+	private JPanel contentPane;
+	private JTable table;
+	private JTable table1;
+	private JTextField textField;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					user frame = new user();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public user() {
+		//String UserName="";
+		
+		setTitle("Health Care Management System");
+		setResizable(false);
+		setBackground(Color.WHITE);
+		setIconImage(Toolkit.getDefaultToolkit().getImage("F:\\java\\healthcareMS\\src\\image\\logo.png"));
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 849, 555);
+		contentPane = new JPanel();
+		contentPane.setForeground(Color.WHITE);
+		contentPane.setBackground(Color.BLACK);
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
+		
+		JLabel lblNewLabel_2 = new JLabel("Welcome To Health Care Management System");
+		lblNewLabel_2.setForeground(Color.WHITE);
+		lblNewLabel_2.setFont(new Font("Papyrus", Font.BOLD, 31));
+		lblNewLabel_2.setBackground(Color.WHITE);
+		lblNewLabel_2.setBounds(57, 10, 714, 114);
+		contentPane.add(lblNewLabel_2);
+		
+		JLabel lblNewLabel_1 = new JLabel("");
+		lblNewLabel_1.setIcon(new ImageIcon("F:\\java\\healthcareMS\\src\\image\\sign.png"));
+		lblNewLabel_1.setBounds(378, 104, 70, 70);
+		contentPane.add(lblNewLabel_1);
+		
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				
+				//reset table data
+				DefaultTableModel model = (DefaultTableModel) table.getModel();
+				model.setRowCount(0);
+				
+				String glUsername=login.glUsername;
+				//connecting to database 
+				try {
+		            Class.forName("com.mysql.jdbc.Driver");
+		            Connection conn = null;
+		            conn = DriverManager.getConnection("jdbc:mysql://localhost/healthcare","root", "");
+		            System.out.println("Database is connected !");
+		            
+		            
+		            Statement stmt = conn.createStatement() ;
+		            String query = "select * from problem where username='"+glUsername+"';" ;
+		            ResultSet rs = stmt.executeQuery(query) ;
+		            ResultSetMetaData rsmd= rs.getMetaData();
+		            
+		            model = (DefaultTableModel) table.getModel();
+		            
+		            int cols = rsmd.getColumnCount();
+		            cols=cols-1;
+		            String[] ColName= new String[cols];
+		            
+		            for(int i=0;i<cols;i++) {
+		            	ColName[i]=rsmd.getColumnName(i+1);
+		            }
+
+		            model.setColumnIdentifiers(ColName);
+		            
+		            String rId,rProblem,rSolution;
+		            
+		            
+		            while(rs.next()) {
+		            	
+		            	rId=rs.getString(1);
+		            	rProblem=rs.getString(2);
+		            	rSolution=rs.getString(3);
+		            	
+
+		            	
+		            	String[] row= {rId,rProblem,rSolution};
+		            	model.addRow(row);
+		            }
+		            
+		            
+		            conn.close();
+		        }
+		        catch(Exception e1) {
+		            System.out.print("Do not connect to DB - Error:"+e1);
+		        }
+				
+				
+				
+			}
+		});
+		tabbedPane.setToolTipText("");
+		tabbedPane.setFont(new Font("Rockwell", Font.BOLD, 18));
+		tabbedPane.setBackground(new Color(255, 255, 255));
+		tabbedPane.setBounds(57, 184, 714, 324);
+		contentPane.add(tabbedPane);
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(new Color(14, 29, 39));
+		tabbedPane.addTab("Problem", null, panel, null);
+		panel.setLayout(null);
+		
+		JTextArea txProblem = new JTextArea();
+		txProblem.setFont(new Font("Tahoma", Font.BOLD, 15));
+		txProblem.setLineWrap(true);
+		txProblem.setTabSize(1);
+		txProblem.setRows(5);
+		txProblem.setWrapStyleWord(true);
+		txProblem.setBounds(467, 127, 232, 87);
+		panel.add(txProblem);
+		
+		JButton btnSubmit = new JButton("Submit");
+		btnSubmit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				
+				String problem = txProblem.getText();
+				String solution="";
+				String glUsername= login.glUsername;
+	            System.out.println(glUsername);
+				
+				if(!problem.equals("")) {
+					//connecting to database 
+					try {
+			            Class.forName("com.mysql.jdbc.Driver");
+			            Connection conn = null;
+			            conn = DriverManager.getConnection("jdbc:mysql://localhost/healthcare","root", "");
+			            System.out.println("Database is connected !");
+			            
+			            PreparedStatement  insert = conn.prepareStatement("insert into problem(problem,solution,username)values(?,?,?)");
+			            insert.setString(1, problem);
+			            insert.setString(2, solution);
+			            insert.setString(3, glUsername);
+			            insert.executeUpdate();
+			            
+			            conn.close();
+
+			            txProblem.setText("");
+
+			              
+			            
+			        }
+			        catch(Exception e1) {
+			            System.out.print("Do not connect to DB - Error:"+e1);
+			        }
+					
+					
+					JFrame f=new JFrame();  
+					JOptionPane.showMessageDialog(f,"Problem registered successfuly");
+					
+					
+				}
+				else {
+					
+					JFrame f=new JFrame();  
+					JOptionPane.showMessageDialog(f,"Please write your problem in the text area.");
+				}
+				
+				
+			}
+		});
+		btnSubmit.setForeground(new Color(0, 0, 102));
+		btnSubmit.setFont(new Font("SimSun", Font.BOLD, 22));
+		btnSubmit.setBackground(UIManager.getColor("Button.background"));
+		btnSubmit.setBounds(520, 224, 121, 36);
+		panel.add(btnSubmit);
+		
+		JLabel lblNewLabel_2_3 = new JLabel("2023  ©  Atikshariar250@gmail.com");
+		lblNewLabel_2_3.setForeground(Color.WHITE);
+		lblNewLabel_2_3.setFont(new Font("Tahoma", Font.PLAIN, 9));
+		lblNewLabel_2_3.setBounds(547, 270, 152, 18);
+		panel.add(lblNewLabel_2_3);
+		
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setBounds(10, 53, 283, 225);
+		panel.add(scrollPane_1);
+		
+		table1 = new JTable();
+		scrollPane_1.setViewportView(table1);
+		
+		JLabel lblSelectDoctor = new JLabel("Select Doctor");
+		lblSelectDoctor.setForeground(new Color(220, 20, 60));
+		lblSelectDoctor.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblSelectDoctor.setBounds(58, 10, 185, 42);
+		panel.add(lblSelectDoctor);
+		
+		JLabel lblDoctorName = new JLabel("Doctor Name");
+		lblDoctorName.setForeground(new Color(220, 20, 60));
+		lblDoctorName.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblDoctorName.setBounds(322, 54, 135, 42);
+		panel.add(lblDoctorName);
+		
+		textField = new JTextField();
+		textField.setHorizontalAlignment(SwingConstants.CENTER);
+		textField.setFont(new Font("Tahoma", Font.BOLD, 20));
+		textField.setEditable(false);
+		textField.setColumns(10);
+		textField.setBounds(467, 58, 232, 36);
+		panel.add(textField);
+		
+		JLabel lblProblem = new JLabel("Problem");
+		lblProblem.setForeground(new Color(220, 20, 60));
+		lblProblem.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblProblem.setBounds(373, 146, 84, 42);
+		panel.add(lblProblem);
+		
+		JPanel panel_1 = new JPanel();
+		panel_1.setBackground(new Color(14, 29, 39));
+		tabbedPane.addTab("Solution", null, panel_1, null);
+		panel_1.setLayout(null);
+		
+		JLabel lblNewLabel_2_3_1 = new JLabel("2023  ©  Atikshariar250@gmail.com");
+		lblNewLabel_2_3_1.setBounds(547, 267, 162, 21);
+		lblNewLabel_2_3_1.setForeground(Color.WHITE);
+		lblNewLabel_2_3_1.setFont(new Font("Tahoma", Font.PLAIN, 9));
+		panel_1.add(lblNewLabel_2_3_1);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(54, 39, 612, 226);
+		panel_1.add(scrollPane);
+		
+		table = new JTable();
+		scrollPane.setViewportView(table);
+		
+		JButton btnBack = new JButton("Log Out");
+		btnBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				
+				homePage frame = new homePage();
+				frame.setVisible(true);
+				dispose();
+				
+			}
+		});
+		btnBack.setForeground(new Color(0, 0, 102));
+		btnBack.setFont(new Font("SimSun", Font.BOLD, 22));
+		btnBack.setBackground(UIManager.getColor("Button.background"));
+		btnBack.setBounds(650, 150, 121, 36);
+		contentPane.add(btnBack);
+		
+
+		
+
+
+	}
+}
